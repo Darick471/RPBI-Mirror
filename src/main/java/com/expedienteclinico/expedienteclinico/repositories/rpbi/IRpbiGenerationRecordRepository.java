@@ -12,6 +12,6 @@ import java.util.Optional;
 public interface IRpbiGenerationRecordRepository extends JpaRepository<RpbiGenerationRecordModel, Long> {
 
     // Para poder "Traducir" de UUID a ID en las operaciones internas
-    Optional<RpbiClasificationModel> findByUuid(String uuid);
+    Optional<RpbiGenerationRecordModel> findByUuid(String uuid);
 
 }

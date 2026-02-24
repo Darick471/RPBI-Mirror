@@ -17,6 +17,9 @@ public class RpbiGenerationRecordModel {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(name = "uuid", updatable = false, nullable = false, unique = true, length = 36)
+    private String uuid = java.util.UUID.randomUUID().toString();
+
     // Relaciones con los catálogos normativos
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "classification_id", nullable = false)

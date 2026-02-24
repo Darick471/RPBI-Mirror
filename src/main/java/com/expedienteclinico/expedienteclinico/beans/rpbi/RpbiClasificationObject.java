@@ -3,7 +3,7 @@ import lombok.Data;
 
 @Data
 public class RpbiClasificationObject {
-    private Long id;
+    private String uuid;
     private String nombre;
     private String descripcion;
     private String codigoColor;

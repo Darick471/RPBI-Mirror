@@ -15,6 +15,9 @@ public class RpbiContainerModel {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(name = "uuid", updatable = false, nullable = false, unique = true, length = 36)
+    private String uuid = java.util.UUID.randomUUID().toString();
+
     @Column(nullable = false, length = 100)
     private String name; // "Bolsa de Polietileno", "Recipiente Rígido"
 

@@ -3,7 +3,7 @@ import lombok.Data;
 
 @Data
 public class RpbiPhysicalStateObject {
-    private Long id;
+    private String uuid;
     private String nombre;
     private String unidadMedida;
     private Long estatusId;

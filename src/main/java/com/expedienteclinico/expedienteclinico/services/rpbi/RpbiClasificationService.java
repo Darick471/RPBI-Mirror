@@ -28,7 +28,7 @@ public class RpbiClasificationService {
             RpbiClasificationObject dto = new RpbiClasificationObject();
 
             // mapeo 1 a 1
-            dto.setId(entidad.getId());
+            dto.setUuid(entidad.getUuid());
             dto.setNombre(entidad.getName());
             dto.setDescripcion(entidad.getDescription());
             dto.setCodigoColor(entidad.getColorCode());

@@ -34,8 +34,7 @@ public class RpbiGenerationRecordService {
         RpbiContainerModel container = containerRepository.findByUuid(request.getContainerUuid())
                 .orElseThrow(() -> new IllegalArgumentException("Container UUID no válido o no encontrado"));
 
-        // 2. Validación Dinámica de Negocio (NOM-087) usando la tabla puente
-        // Se asume que el ID 1 corresponde al estatus "Activo" en tu StatusModel
+
         boolean isNom087Compliant = complianceMatrixRepository.existsByClassificationAndPhysicalStateAndContainerAndStatus_Id(
                 classification, physicalState, container, 1L);
 

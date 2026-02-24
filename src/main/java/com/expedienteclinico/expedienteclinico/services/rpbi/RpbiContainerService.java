@@ -24,7 +24,7 @@ public List<RpbiContainerObject> getAll(){
 
         RpbiContainerObject dto = new RpbiContainerObject();
 
-        dto.setId(entidad.getId());
+        dto.setUuid(entidad.getUuid());
         dto.setNombre(entidad.getName());
         dto.setDescripcion(entidad.getDescription());
         if(entidad.getStatus() != null ){

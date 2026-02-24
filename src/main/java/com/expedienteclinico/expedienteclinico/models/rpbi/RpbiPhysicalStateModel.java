@@ -15,6 +15,9 @@ public class RpbiPhysicalStateModel {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(name = "uuid", updatable = false, nullable = false, unique = true, length = 36)
+    private String uuid = java.util.UUID.randomUUID().toString();
+
     @Column(nullable = false, length = 50, unique = true)
     private String name; // "Sólido", "Líquido"
 

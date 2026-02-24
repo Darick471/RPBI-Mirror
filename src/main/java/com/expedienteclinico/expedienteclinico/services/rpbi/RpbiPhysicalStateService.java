@@ -25,7 +25,7 @@ public class RpbiPhysicalStateService {
 
             RpbiPhysicalStateObject dto = new RpbiPhysicalStateObject();
 
-            dto.setId(entidad.getId());
+            dto.setUuid(entidad.getUuid());
             dto.setNombre(entidad.getName());
             dto.setUnidadMedida(entidad.getMeasureUnit());
 
