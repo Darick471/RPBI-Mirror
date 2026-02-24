@@ -1,0 +1,17 @@
+# Excluir credenciales y configuración sensible
+src/main/resources/application.properties
+src/main/resources/application.yaml
+*.env
+
+# Excluir archivos compilados de Java y Maven
+target/
+*.class
+*.jar
+*.war
+
+# Excluir configuraciones del IDE (IntelliJ IDEA)
+.idea/
+*.iml
+
+# Excluir logs
+*.log
