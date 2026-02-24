@@ -7,6 +7,6 @@ public class RpbiClasificationObject {
     private String nombre;
     private String descripcion;
     private String codigoColor;
-    private Long estatusId;
+    private String statusUuid;
     private String estatusNombre;
 }

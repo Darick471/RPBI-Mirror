@@ -6,6 +6,6 @@ public class RpbiPhysicalStateObject {
     private String uuid;
     private String nombre;
     private String unidadMedida;
-    private Long estatusId;
+    private String statusUuid;
     private String estatusNombre;
 }

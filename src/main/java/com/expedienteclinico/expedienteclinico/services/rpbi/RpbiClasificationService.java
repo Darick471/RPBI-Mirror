@@ -35,8 +35,7 @@ public class RpbiClasificationService {
 
             // mapeo relacional
             if (entidad.getStatus() != null) {
-                // se separa el id y nombre, segun los campos declarados en el Dto
-                dto.setEstatusId(entidad.getStatus().getId());
+                dto.setStatusUuid(entidad.getStatus().getUuid());
                 dto.setEstatusNombre(entidad.getStatus().getStatusName());
             }
 

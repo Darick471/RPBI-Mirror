@@ -6,6 +6,6 @@ public class RpbiContainerObject {
     private String uuid;
     private String nombre;
     private String descripcion;
-    private Long estatusId;
+    private String statusUuid;
     private String estatusNombre;
 }

@@ -29,7 +29,7 @@ public List<RpbiContainerObject> getAll(){
         dto.setDescripcion(entidad.getDescription());
         if(entidad.getStatus() != null ){
 
-            dto.setEstatusId(entidad.getStatus().getId());
+            dto.setStatusUuid(entidad.getStatus().getUuid());
             dto.setEstatusNombre(entidad.getStatus().getStatusName());
         }
         dtos.add(dto);
