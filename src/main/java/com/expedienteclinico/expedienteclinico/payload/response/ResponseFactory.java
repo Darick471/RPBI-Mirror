@@ -59,4 +59,12 @@ public class ResponseFactory {
         return response;
 
     }
+
+    // Añadir debajo de los métodos existentes en ResponseFactory
+    public static Map<String, Object> getCreatedResponse(String message, Object data) {
+        Map<String, Object> response = new LinkedHashMap<>();
+        response.put("message", message);
+        response.put("data", data);
+        return response;
+    }
 }

@@ -4,6 +4,7 @@ import com.expedienteclinico.expedienteclinico.beans.rpbi.RpbiGenerationRecordRe
 import com.expedienteclinico.expedienteclinico.models.StatusModel;
 import com.expedienteclinico.expedienteclinico.models.rpbi.*;
 import com.expedienteclinico.expedienteclinico.repositories.rpbi.*;
+import com.expedienteclinico.expedienteclinico.repositories.IStatusRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,6 +21,7 @@ public class RpbiGenerationRecordService {
     private final IRpbiPhysicalStateRepository physicalStateRepository;
     private final IRpbiContainerRepository containerRepository;
     private final IRpbiComplianceMatrixRepository complianceMatrixRepository;
+    private final IStatusRepository statusRepository;
 
     @Transactional
     public RpbiGenerationRecordModel createRecord(RpbiGenerationRecordRequestObject request) {
@@ -54,9 +56,11 @@ public class RpbiGenerationRecordService {
         record.setGenerationDate(LocalDateTime.now());
 
         // Asignación de estatus activo para el nuevo registro transaccional
-        StatusModel activeStatus = new StatusModel();
-        activeStatus.setId(1L);
+        StatusModel activeStatus = statusRepository.findById(1L)
+                .orElseThrow(() -> new RuntimeException("Estatus base no encontrado"));
         record.setStatus(activeStatus);
+
+        record.setGenerationDate(LocalDateTime.now()); //
 
         // 4. Persistencia
         return generationRepository.save(record);

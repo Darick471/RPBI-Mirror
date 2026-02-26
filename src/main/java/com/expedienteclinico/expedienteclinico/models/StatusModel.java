@@ -2,7 +2,7 @@ package com.expedienteclinico.expedienteclinico.models;
 
 import lombok.Getter;
 import lombok.Setter;
-import javax.persistence.*; // USAMOS JAVAX PARA SPRING BOOT 2.6
+import javax.persistence.*;
 
 @Entity
 @Table(name = "status")

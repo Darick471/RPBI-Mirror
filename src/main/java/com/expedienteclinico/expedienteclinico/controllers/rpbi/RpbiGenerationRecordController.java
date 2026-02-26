@@ -47,15 +47,10 @@ public class RpbiGenerationRecordController {
             responseObj.setGenerationDate(savedModel.getGenerationDate());
             responseObj.setStatusName(savedModel.getStatus().getStatusName());
 
-            // Nota Crítica sobre ResponseFactory:
-            // Utilizamos un LinkedHashMap genérico aquí porque tu ResponseFactory actual
-            // no tiene un método adecuado para "Creación Exitosa" (HTTP 201).
-            // 'getSuccessOnGetAllResponse' devuelve "Informacón obtenida", lo cual es incorrecto para un POST.
-            Map<String, Object> responseBody = new java.util.LinkedHashMap<>();
-            responseBody.put("message", "Registro de RPBI generado exitosamente.");
-            responseBody.put("data", responseObj);
-
-            return new ResponseEntity<>(responseBody, HttpStatus.CREATED);
+            return new ResponseEntity<>(
+                    ResponseFactory.getCreatedResponse("Registro de RPBI generado exitosamente.", responseObj),
+                    HttpStatus.CREATED
+            );
 
         } catch (IllegalArgumentException | IllegalStateException e) {
             // 4. Capturar las violaciones de la NOM-087 o UUIDs falsos que lanza el Servicio

@@ -18,32 +18,34 @@ public class RpbiDataLoader implements CommandLineRunner {
     private final IRpbiContainerRepository containerRepository;
     private final IRpbiComplianceMatrixRepository matrixRepository;
 
-    // Inyección de Variables de Entorno (Igual a la arquitectura de tu compañero)
-    @Value("${STATUS1}")
-    private String statusName;
+    // 1. Inyección de Variables con Fallbacks Defensivos
+    @Value("${STATUS1:Activo}")
+    private String statusActiveName;
 
-    @Value("${RPBI_CLASIF_NAME}")
+    @Value("${STATUS2:Inactivo}")
+    private String statusInactiveName;
+
+    @Value("${RPBI_CLASIF_NAME:Punzocortantes}")
     private String clasifName;
 
-    @Value("${RPBI_CLASIF_DESC}")
+    @Value("${RPBI_CLASIF_DESC:Agujas de jeringas, bisturíes, estiletes}")
     private String clasifDesc;
 
-    @Value("${RPBI_CLASIF_COLOR}")
+    @Value("${RPBI_CLASIF_COLOR:Rojo}")
     private String clasifColor;
 
-    @Value("${RPBI_PHYS_STATE_NAME}")
+    @Value("${RPBI_PHYS_STATE_NAME:Sólido}")
     private String physStateName;
 
-    @Value("${RPBI_PHYS_STATE_UNIT}")
+    @Value("${RPBI_PHYS_STATE_UNIT:kg}")
     private String physStateUnit;
 
-    @Value("${RPBI_CONT_NAME}")
+    @Value("${RPBI_CONT_NAME:Recipiente Rígido}")
     private String contName;
 
-    @Value("${RPBI_CONT_DESC}")
+    @Value("${RPBI_CONT_DESC:Polipropileno resistente a fracturas}")
     private String contDesc;
 
-    // Constructor explícito para inyección de dependencias
     public RpbiDataLoader(IStatusRepository statusRepository,
                           IRpbiClasificationRepository classificationRepository,
                           IRpbiPhysicalStateRepository physicalStateRepository,
@@ -59,51 +61,77 @@ public class RpbiDataLoader implements CommandLineRunner {
     @Override
     @Transactional
     public void run(String... args) {
+        // 2. Resolución de Estatus (Garantiza independencia de otros seeders)
+        StatusModel activeStatus = resolveStatus(statusActiveName);
+        StatusModel inactiveStatus = resolveStatus(statusInactiveName);
 
-        // 1. Resolución Defensiva del Estatus
-        StatusModel targetStatus;
-
-        if (statusRepository.count() == 0) {
-            // Si nuestro script corre primero, lo creamos con la variable de entorno
-            StatusModel newStatus = new StatusModel();
-            newStatus.setStatusName(statusName);
-            targetStatus = statusRepository.save(newStatus);
-        } else {
-            // Si el de tu compañero corrió primero, usamos el suyo
-            targetStatus = statusRepository.findById(1L)
-                    .orElseThrow(() -> new IllegalStateException("Fallo de integridad: La tabla de estatus no está vacía, pero el ID 1 no existe."));
-        }
-
-        // 2. Sembrado Aislado del Módulo RPBI con variables de entorno
+        // 3. Verificación de Idempotencia (Solo siembra si la tabla está vacía)
         if (classificationRepository.count() == 0) {
 
-            RpbiClasificationModel clasifPunzo = new RpbiClasificationModel();
-            clasifPunzo.setName(clasifName);
-            clasifPunzo.setDescription(clasifDesc);
-            clasifPunzo.setColorCode(clasifColor);
-            clasifPunzo.setStatus(targetStatus);
-            clasifPunzo = classificationRepository.save(clasifPunzo);
+            // A. Registro por Compatibilidad (Variables de entorno)
+            RpbiClasificationModel cVar = saveClasif(clasifName, clasifDesc, clasifColor, activeStatus);
+            RpbiPhysicalStateModel sVar = saveState(physStateName, physStateUnit, activeStatus);
+            RpbiContainerModel nVar = saveCont(contName, contDesc, activeStatus);
+            saveMatrix(cVar, sVar, nVar, activeStatus);
 
-            RpbiPhysicalStateModel stateSolid = new RpbiPhysicalStateModel();
-            stateSolid.setName(physStateName);
-            stateSolid.setMeasureUnit(physStateUnit);
-            stateSolid.setStatus(targetStatus);
-            stateSolid = physicalStateRepository.save(stateSolid);
+            // B. Resto de la Normativa NOM-087 (Hardcode)
+            seedNom087Normative(activeStatus);
 
-            RpbiContainerModel containerRigid = new RpbiContainerModel();
-            containerRigid.setName(contName);
-            containerRigid.setDescription(contDesc);
-            containerRigid.setStatus(targetStatus);
-            containerRigid = containerRepository.save(containerRigid);
-
-            RpbiComplianceMatrixModel matrixRule = new RpbiComplianceMatrixModel();
-            matrixRule.setClassification(clasifPunzo);
-            matrixRule.setPhysicalState(stateSolid);
-            matrixRule.setContainer(containerRigid);
-            matrixRule.setStatus(targetStatus);
-            matrixRepository.save(matrixRule);
-
-            System.out.println("Sembrado defensivo completado: Catálogos RPBI insertados usando Variables de Entorno.");
+            System.out.println(">>> Módulo RPBI: Sembrado defensivo y normativo completado con éxito.");
         }
+    }
+
+    //
+    // Busca un estatus por nombre. Si no existe, lo crea.
+    // Esto evita conflictos si otro loader ya insertó el estatus 'Activo'.
+    //
+    private StatusModel resolveStatus(String name) {
+        return statusRepository.findAll().stream()
+                .filter(s -> s.getStatusName().equalsIgnoreCase(name))
+                .findFirst()
+                .orElseGet(() -> {
+                    StatusModel nuevo = new StatusModel();
+                    nuevo.setStatusName(name);
+                    return statusRepository.save(nuevo);
+                });
+    }
+
+    private void seedNom087Normative(StatusModel status) {
+        // Sangre Líquida
+        RpbiClasificationModel sangre = saveClasif("Sangre", "Sangre líquida y sus componentes", "Rojo", status);
+        RpbiPhysicalStateModel liquido = saveState("Líquido", "L", status);
+        RpbiContainerModel hermeticoRojo = saveCont("Recipiente Hermético", "Polipropileno tapa hermética", status);
+        saveMatrix(sangre, liquido, hermeticoRojo, status);
+
+        // Patológicos
+        RpbiClasificationModel pato = saveClasif("Patológicos", "Tejidos y órganos no en formol", "Amarillo", status);
+        RpbiPhysicalStateModel solido = saveState("Sólido", "kg", status);
+        RpbiContainerModel bolsaAma = saveCont("Bolsa Polietileno Amarilla", "Calibre mínimo 300", status);
+        saveMatrix(pato, solido, bolsaAma, status);
+    }
+
+    // --- Métodos Auxiliares de Persistencia ---
+    private RpbiClasificationModel saveClasif(String n, String d, String c, StatusModel s) {
+        RpbiClasificationModel m = new RpbiClasificationModel();
+        m.setName(n); m.setDescription(d); m.setColorCode(c); m.setStatus(s);
+        return classificationRepository.save(m);
+    }
+
+    private RpbiPhysicalStateModel saveState(String n, String u, StatusModel s) {
+        RpbiPhysicalStateModel m = new RpbiPhysicalStateModel();
+        m.setName(n); m.setMeasureUnit(u); m.setStatus(s);
+        return physicalStateRepository.save(m);
+    }
+
+    private RpbiContainerModel saveCont(String n, String d, StatusModel s) {
+        RpbiContainerModel m = new RpbiContainerModel();
+        m.setName(n); m.setDescription(d); m.setStatus(s);
+        return containerRepository.save(m);
+    }
+
+    private void saveMatrix(RpbiClasificationModel c, RpbiPhysicalStateModel p, RpbiContainerModel e, StatusModel s) {
+        RpbiComplianceMatrixModel m = new RpbiComplianceMatrixModel();
+        m.setClassification(c); m.setPhysicalState(p); m.setContainer(e); m.setStatus(s);
+        matrixRepository.save(m);
     }
 }
