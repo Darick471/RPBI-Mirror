@@ -4,7 +4,7 @@ import com.expedienteclinico.expedienteclinico.models.StatusModel;
 import lombok.Getter;
 import lombok.Setter;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
 
 @Entity
 @Table(name = "rpbi_compliance_matrix_nom087")

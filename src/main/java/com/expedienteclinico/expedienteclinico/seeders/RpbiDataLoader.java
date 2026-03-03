@@ -19,10 +19,10 @@ public class RpbiDataLoader implements CommandLineRunner {
     private final IRpbiComplianceMatrixRepository matrixRepository;
 
     // 1. Inyección de Variables con Fallbacks Defensivos
-    @Value("${STATUS1:Activo}")
+    @Value("${STATUS1:Active}")
     private String statusActiveName;
 
-    @Value("${STATUS2:Inactivo}")
+    @Value("${STATUS2:Inactive}")
     private String statusInactiveName;
 
     @Value("${RPBI_CLASIF_NAME:Punzocortantes}")
@@ -112,26 +112,58 @@ public class RpbiDataLoader implements CommandLineRunner {
 
     // --- Métodos Auxiliares de Persistencia ---
     private RpbiClasificationModel saveClasif(String n, String d, String c, StatusModel s) {
-        RpbiClasificationModel m = new RpbiClasificationModel();
-        m.setName(n); m.setDescription(d); m.setColorCode(c); m.setStatus(s);
-        return classificationRepository.save(m);
+        return classificationRepository.findAll().stream()
+                .filter(clasif -> clasif.getName().equalsIgnoreCase(n))
+                .findFirst()
+                .orElseGet(() -> {
+                    RpbiClasificationModel m = new RpbiClasificationModel();
+                    m.setName(n);
+                    m.setDescription(d);
+                    m.setColorCode(c);
+                    m.setStatus(s);
+                    return classificationRepository.save(m);
+                });
     }
 
     private RpbiPhysicalStateModel saveState(String n, String u, StatusModel s) {
-        RpbiPhysicalStateModel m = new RpbiPhysicalStateModel();
-        m.setName(n); m.setMeasureUnit(u); m.setStatus(s);
-        return physicalStateRepository.save(m);
+        return physicalStateRepository.findAll().stream()
+                .filter(state -> state.getName().equalsIgnoreCase(n))
+                .findFirst()
+                .orElseGet(() -> {
+                    RpbiPhysicalStateModel m = new RpbiPhysicalStateModel();
+                    m.setName(n);
+                    m.setMeasureUnit(u);
+                    m.setStatus(s);
+                    return physicalStateRepository.save(m);
+                });
     }
-
     private RpbiContainerModel saveCont(String n, String d, StatusModel s) {
-        RpbiContainerModel m = new RpbiContainerModel();
-        m.setName(n); m.setDescription(d); m.setStatus(s);
-        return containerRepository.save(m);
+        return containerRepository.findAll().stream()
+                .filter(cont -> cont.getName().equalsIgnoreCase(n))
+                .findFirst()
+                .orElseGet(() -> {
+                    RpbiContainerModel m = new RpbiContainerModel();
+                    m.setName(n);
+                    m.setDescription(d);
+                    m.setStatus(s);
+                    return containerRepository.save(m);
+                });
     }
 
     private void saveMatrix(RpbiClasificationModel c, RpbiPhysicalStateModel p, RpbiContainerModel e, StatusModel s) {
-        RpbiComplianceMatrixModel m = new RpbiComplianceMatrixModel();
-        m.setClassification(c); m.setPhysicalState(p); m.setContainer(e); m.setStatus(s);
-        matrixRepository.save(m);
+        // La matriz también debe validarse para evitar duplicar combinaciones si el seeder corre múltiples veces
+        boolean exists = matrixRepository.findAll().stream()
+                .anyMatch(matrix -> matrix.getClassification().getId().equals(c.getId()) &&
+                        matrix.getPhysicalState().getId().equals(p.getId()) &&
+                        matrix.getContainer().getId().equals(e.getId()));
+
+        if (!exists) {
+            RpbiComplianceMatrixModel m = new RpbiComplianceMatrixModel();
+            m.setClassification(c);
+            m.setPhysicalState(p);
+            m.setContainer(e);
+            m.setStatus(s);
+            matrixRepository.save(m);
+        }
     }
 }
